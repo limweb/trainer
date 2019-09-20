@@ -11,9 +11,9 @@ services:
     restart: always
     command: "node test3.js"
     ports:
-      - "8000:8000"
+      - "8901:8000"
     expose:
-      - "8000"
+      - "8901"
     labels:
       com.docker.compose.project: "trainer"
     environment:
