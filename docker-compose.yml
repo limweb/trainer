@@ -1,0 +1,20 @@
+#  docker-compose -f docker-compose.yml config check validate config
+version: "3"
+services:
+  trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: "trainer:v1"
+    container_name: trainer
+    working_dir: /app/
+    restart: always
+    command: "node test3.js"
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    labels:
+      com.docker.compose.project: "trainer"
+    environment:
+      NODE_ENV: pro
