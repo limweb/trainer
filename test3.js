@@ -27,42 +27,71 @@ app.get("/", (req, res) => {
 });
 
 async function run(QUERY_IMAGE) {
+  console.log("---------run---------------");
   await commons.faceDetectionNet.loadFromDisk("./weights");
   await faceapi.nets.faceLandmark68Net.loadFromDisk("./weights");
   await faceapi.nets.faceRecognitionNet.loadFromDisk("./weights");
   await faceapi.nets.ageGenderNet.loadFromDisk("./weights");
-  
 
   const queryImage = await commons.canvas.loadImage(QUERY_IMAGE);
+  console.log("queryImage-->", queryImage);
   const resultsQuery = await faceapi
     .detectAllFaces(queryImage, commons.faceDetectionOptions)
     .withFaceLandmarks()
     .withAgeAndGender()
     .withFaceDescriptors();
-  console.log(resultsQuery[0].gender);
+  console.log("length-->", resultsQuery.length);
+  let l = resultsQuery.length;
+  if (l > 1) {
+    for (let index = 0; index < l; index++) {
+      console.log(index, "--->", resultsQuery[index].gender);
+    }
+
+    return {
+      isSuccessed: false
+    };
+  } else {
+    console.log(resultsQuery[0].gender);
+    return {
+      isSuccessed: true,
+      gender: resultsQuery[0].gender,
+      descriptor: resultsQuery[0].descriptor
+    };
+  }
   // console.log(resultsQuery[0].descriptor);
-  return {
-    gender: resultsQuery[0].gender,
-    descriptor: resultsQuery[0].descriptor
-  };
 }
 
 app.post("/upload", function(req, res) {
   // console.log("---req--", req.body.imgData);
-  var base64Data = "data:image/png;base64," + req.body.imgData;
+  let isUrl = req.body.isUrl;
+  var querydata = "";
+  if (isUrl) {
+    querydata = req.body.imgData;
+  } else {
+    querydata = "data:image/png;base64," + req.body.imgData;
+  }
   let ID = req.body.ID;
   let Name = req.body.name;
-  if (base64Data) {
-    run(base64Data)
+  if (querydata) {
+    run(querydata)
       .then(rs => {
-        rs.id = ID;
-        rs.name = Name;
-        // console.log("rs--->", rs);
-        res.send(JSON.stringify(rs));
+        if (rs.isSuccessed) {
+          rs.id = ID;
+          rs.name = Name;
+          res.send(JSON.stringify(rs));
+        } else {
+          res.send({
+            isSuccessed: false,
+            error: "image have more faces"
+          });
+        }
       })
       .catch(err => console.log);
   } else {
-    res.send("not base64 imageData");
+    res.send({
+      isSuccessed: false,
+      error: "not imageData"
+    });
   }
 
   // var img = new Canvas.Image();
@@ -95,6 +124,7 @@ app.post("/upload", function(req, res) {
 
   // img.src = base64Data;
 });
+
 if (!module.parent) {
   app.listen(8000);
   console.log("Express started on port 8000");
