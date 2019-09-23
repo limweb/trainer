@@ -9,7 +9,7 @@ services:
     container_name: trainer
     working_dir: /app/
     restart: always
-    command: "node test3.js"
+    command: "npm run start"
     ports:
       - "8901:8000"
     expose:
