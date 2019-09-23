@@ -9,7 +9,7 @@ services:
     container_name: trainer
     working_dir: /app/
     restart: always
-    command: "npm run start"
+    command: "npx pm2-runtime start test3.js -n trainer -i 5"
     ports:
       - "8901:8000"
     expose:
